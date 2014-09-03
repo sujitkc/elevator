@@ -17,13 +17,9 @@ const int DOWN          =  -1;
 bool ReqF0;  /* Request from Ground floor    */
 bool ReqF1;  /* Request from First floor     */
 bool ReqF2;  /* Request from Second floor    */
-bool ReqF3;  /* Request from Third floor     */
-bool ReqF4;  /* Request from Fourth floor    */
 bool ReqC0;  /* Car Request for Ground floor */
 bool ReqC1;  /* Car Request for First floor  */
 bool ReqC2;  /* Car Request for Second floor */
-bool ReqC3;  /* Car Request for Third floor  */
-bool ReqC4;  /* Car Request for Fourth floor */
 /* Input variables - END */
 
 /* Internal variables - BEGIN */
@@ -48,16 +44,12 @@ Reqn is set of internal variables and their values are set through internal comp
 bool Req0; /* Request Flag for Ground floor */
 bool Req1; /* Request Flag for First floor */
 bool Req2; /* Request Flag for Second floor */
-bool Req3; /* Request Flag for Third floor */
-bool Req4; /* Request Flag for Fourth floor */
 
 bool stopCommand;      /* stop command */
 
 bool isFloorApproaching0; /* is ground floor approaching? */
 bool isFloorApproaching1; /* is first floor approaching?  */
 bool isFloorApproaching2; /* is second floor approaching? */
-bool isFloorApproaching3; /* is third floor approaching?  */
-bool isFloorApproaching4; /* is fourth floor approaching? */
 
 int timeAtCurrentFloor;
 /* Internal variables - END */
@@ -66,13 +58,9 @@ int timeAtCurrentFloor;
 bool ReqF0_prev;  /* Request from Ground floor    */
 bool ReqF1_prev;  /* Request from First floor     */
 bool ReqF2_prev;  /* Request from Second floor    */
-bool ReqF3_prev;  /* Request from Third floor     */
-bool ReqF4_prev;  /* Request from Fourth floor    */
 bool ReqC0_prev;  /* Car Request for Ground floor */
 bool ReqC1_prev;  /* Car Request for First floor  */
 bool ReqC2_prev;  /* Car Request for Second floor */
-bool ReqC3_prev;  /* Car Request for Third floor  */
-bool ReqC4_prev;  /* Car Request for Fourth floor */
 
 int direction_prev;
 bool stopCommand_prev; /* stop command status in the last step */
@@ -85,18 +73,12 @@ void init() {
   Req0        = false;
   Req1        = false;
   Req2        = false;
-  Req3        = false;
-  Req4        = false;
   ReqF0_prev  = false;
   ReqF1_prev  = false;
   ReqF2_prev  = false;
-  ReqF3_prev  = false;
-  ReqF4_prev  = false;
   ReqC0_prev  = false;
   ReqC1_prev  = false;
   ReqC2_prev  = false;
-  ReqC3_prev  = false;
-  ReqC4_prev  = false;
 
   direction_prev = STATIONARY;
   stopCommand_prev = false;
@@ -110,13 +92,9 @@ void inputs() {
   ReqF0 = input();
   ReqF1 = input();
   ReqF2 = input();
-  ReqF3 = input();
-  ReqF4 = input();
   ReqC0 = input();
   ReqC1 = input();
   ReqC2 = input();
-  ReqC3 = input();
-  ReqC4 = input();
 }
 
 int getDelayToReach(const int p1, const int p2) { return (p2 - p1) / SPEED; }
@@ -162,20 +140,12 @@ void updateReqns() {
   if((ReqF2_prev == false && ReqF2 == true) || (ReqC2_prev == false && ReqC2 == true)) {
     Req2 = !isCarAtFloor(2) || isCarMoving(); 
   }
-  if((ReqF3_prev == false && ReqF3 == true) || (ReqC3_prev == false && ReqC3 == true)) {
-    Req3 = !isCarAtFloor(3) || isCarMoving(); 
-  }
-  if((ReqF4_prev == false && ReqF4 == true) || (ReqC4_prev == false && ReqC4 == true)) {
-    Req4 = !isCarAtFloor(4) || isCarMoving(); 
-  }
 }
 
 bool computeStopCommand() {
   bool floorApproaching0 = isFloorApproaching(0);
   bool floorApproaching1 = isFloorApproaching(1);
   bool floorApproaching2 = isFloorApproaching(2);
-  bool floorApproaching3 = isFloorApproaching(3);
-  bool floorApproaching4 = isFloorApproaching(4);
 
   if(floorApproaching0 && Req0) {
     return true;
@@ -184,12 +154,6 @@ bool computeStopCommand() {
     return true;
   }
   if(floorApproaching2 && Req2) {
-    return true;
-  }
-  if(floorApproaching3 && Req3) {
-    return true;
-  }
-  if(floorApproaching4 && Req4) {
     return true;
   }
   return false;
@@ -207,6 +171,14 @@ int updatePosition() {
   }
 }
 
+bool isFloorAbove(int f) {
+  return position < f * FLOORDISTANCE;
+}
+
+bool isFloorBelow(int f) {
+  return position > f * FLOORDISTANCE;
+}
+
 void updateDirection() {
   if(direction_prev == STATIONARY) {
     if(floorTimerUp() == false) {
@@ -218,22 +190,10 @@ void updateDirection() {
     else if(isFloorAbove(2) && Req2) {
       direction = UP;
     }
-    else if(isFloorAbove(3) && Req3) {
-      direction = UP;
-    }
-    else if(isFloorAbove(4) && Req4) {
-      direction = UP;
-    }
     else if(isFloorBelow(1) && Req1) {
       direction = DOWN;
     }
     else if(isFloorBelow(2) && Req2) {
-      direction = DOWN;
-    }
-    else if(isFloorBelow(3) && Req3) {
-      direction = DOWN;
-    }
-    else if(isFloorBelow(4) && Req4) {
       direction = DOWN;
     }
     else {
@@ -247,13 +207,7 @@ void updateDirection() {
     else if(isFloorAbove(2) && Req2) {
       direction = UP;
     }
-    else if(isFloorAbove(3) && Req3) {
-      direction = UP;
-    }
-    else if(isFloorAbove(4) && Req4) {
-      direction = UP;
-    }
-    else if(!isCarAtFloor(0) && !isCarAtFloor(1) && !isCarAtFloor(2) && !isCarAtFloor(3) && !isCarAtFloor(4)) {
+    else if(!isCarAtFloor(0) && !isCarAtFloor(1) && !isCarAtFloor(2)) {
       direction = UP;
     }
     else {
@@ -269,16 +223,10 @@ void resetRequest() {
     Req0 = false;
   }
   if(isCarAtFloor(1) && !isCarMoving() && Req1 == true) {
-    Req0 = false;
+    Req1 = false;
   }
   if(isCarAtFloor(2) && !isCarMoving() && Req2 == true) {
-    Req0 = false;
-  }
-  if(isCarAtFloor(3) && !isCarMoving() && Req3 == true) {
-    Req0 = false;
-  }
-  if(isCarAtFloor(4) && !isCarMoving() && Req4 == true) {
-    Req0 = false;
+    Req2 = false;
   }
 }
 
@@ -298,13 +246,9 @@ void feedback_delay() {
   ReqF0_prev = ReqF0;
   ReqF1_prev = ReqF1;
   ReqF2_prev = ReqF2;
-  ReqF3_prev = ReqF3;
-  ReqF4_prev = ReqF4;
   ReqC0_prev = ReqC0;
   ReqC1_prev = ReqC1;
   ReqC2_prev = ReqC2;
-  ReqC3_prev = ReqC3;
-  ReqC4_prev = ReqC4;
 }
 
 void step() {
@@ -314,7 +258,7 @@ void step() {
 }
 
 void print() {
-  cout << "{ R0:" << Req0 << " R1:" << Req1 << " R2:" << Req2 << " R3:" << Req3 << " R4:" << Req4 << " }, "
+  cout << "{ R0:" << Req0 << " R1:" << Req1 << " R2:" << Req2 " }, "
     "position = " << position << "; direction = " << direction << endl;
 }
 
@@ -323,6 +267,24 @@ void execute() {
   while(true) {
     step();
     print();
+  }
+}
+
+void timer() {
+  while(true) {
+    x1 = x2 - 1;
+    x4 = x3 - start;
+    if(x5 == true) {
+      out = c;
+    }
+    else if(x2 != 0) {
+      out = x2 - 1;
+    }
+    else {
+      out = x2;
+    }
+    t_on = (out != 0);
+    x5 = start;
   }
 }
 
