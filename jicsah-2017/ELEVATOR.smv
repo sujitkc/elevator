@@ -1,0 +1,875 @@
+------------------------------------------
+--ELEVATOR MODEL--
+------------------------------------------
+--[A]PLANT IS COMBINED WITH TWO MAIN MODULES
+------------------------------------------
+-- (A.1)CALCULATING THE POSITION
+MODULE ro
+VAR
+	out : -1..1;
+	ro1 : 0..1;
+	ro2 : 0..1;
+ASSIGN
+	init(out) := -1;
+	ro1 := case 
+		out = -1 : 0;
+		out =  1 : 1;
+		out =  0 : 0;
+	       esac;
+	ro2 := case 
+		out = -1 : 1;
+		out =  1 : 0;
+		out =  0 : 0;
+	       esac;
+-----------------------------------
+MODULE pdt(m,p)
+VAR
+	pd1 : {0, 1};
+	pd2 : {-1, 0};
+	ro1 : 0..1;
+	ro2 : 0..1;	
+ASSIGN
+	init(ro1) := 0;
+	pd1 := case
+		ro1 = 1 : 1 * 1;
+		ro1 = 0 : 0 * 1;
+	       esac;
+	pd2 := case
+		ro2 = 1 : 1 *-1;
+		ro2 = 0 : 0 * -1;
+	       esac;	
+------------------------------------
+MODULE sum(n,q)
+VAR
+	pos : -1..1;
+	pd1 : {0, 1};
+	pd2 : {-1, 0};
+ASSIGN
+	pos := pd1 + pd2;
+------------------------------------
+MODULE counter(q)
+VAR
+  pos : -1 .. 10;
+ASSIGN
+  init(pos) := -1;
+  next(pos) :=
+    case
+      pos = 10 : 1;
+      TRUE     : pos + 1;
+    esac;
+--------------------------------------
+--(A.2)POSITION ID 
+MODULE postn(r)
+VAR
+	cnt : {0, 10, 20, 30, 40};
+	p4	 : boolean;
+	p3	 : boolean;
+	p2	 : boolean;
+	p1	 : boolean;
+	p0	 : boolean;
+ASSIGN
+	p4 := cnt = 40;
+	p3 := cnt = 30;
+	p2 := cnt = 20;
+	p1 := cnt = 10;
+	p0 := cnt = 0;
+----------------------------------------
+--(A.3)TEST CASES
+MODULE tc1
+VAR
+	cnt   : 0..10;
+	out1  : boolean;
+	out2  : 0..11;
+ASSIGN
+	init(out1) := FALSE;
+	init(out2) := 0;
+--	init(cnt)  := 0;
+	next(out1) := case
+			cnt = 0 : TRUE;
+			cnt = 1 : TRUE;
+			cnt = 2 : TRUE;
+			cnt = 3 : TRUE;
+			cnt = 4 : TRUE;
+			cnt = 5 : TRUE;
+			cnt = 6 : TRUE;
+			cnt = 7 : TRUE;
+			cnt = 8 : TRUE;
+			cnt = 9 : TRUE;
+			cnt = 10 : TRUE;
+	--		TRUE : out1;
+		esac;
+	next(out2) := case
+			cnt = 0 : 2;
+			cnt = 1 : 3;
+			cnt = 2 : 4;
+			cnt = 3 : 5;
+			cnt = 4 : 6;
+			cnt = 5 : 7;
+			cnt = 6 : 8;
+			cnt = 7 : 9;
+			cnt = 8 : 10;
+			cnt = 9 : 11;
+			TRUE : out2;
+		esac;	
+--	next(cnt) :=cnt+1;
+---------------------------------------------------
+MODULE system(w,e)
+VAR
+	R0:boolean;
+	R1:boolean;
+	R2:boolean;
+	R3:boolean;
+	R4:boolean;
+---------------------------------------------------
+--[B]CONTROLLER
+---------------------------------------------------
+--(B.1)SUBSYTEM IN CONTROLLER 
+---------------------------------------------------
+MODULE sub_and4(inn,epp)
+VAR
+r4_out : boolean;
+P4    : boolean;
+input : boolean;
+final_out4 : boolean;
+ASSIGN
+init(r4_out) := FALSE;
+next(r4_out) := input;
+final_out4   := input & P4;
+-------------------------------------------
+MODULE sub_and3(inn,epp)
+VAR
+r3_out : boolean;
+P3    : boolean;
+input : boolean;
+final_out3 : boolean;
+ASSIGN
+init(r3_out) := FALSE;
+next(r3_out) := input;
+final_out3   := input & P3;
+-------------------------------------------
+MODULE sub_and2(inn,epp)
+VAR
+r2_out : boolean;
+P2    : boolean;
+input : boolean;
+final_out2 : boolean;
+ASSIGN
+init(r2_out) := FALSE;
+next(r2_out) := input;
+final_out2   := input & P2;
+-------------------------------------------
+MODULE sub_and1(inn,epp)
+VAR
+r1_out : boolean;
+P1    : boolean;
+input : boolean;
+final_out1 : boolean;
+ASSIGN
+init(r1_out) := FALSE;
+next(r1_out) := input;
+final_out1   := input & P1;
+-------------------------------------------
+MODULE sub_and0(inn,epp)
+VAR
+r0_out : boolean;
+P0    : boolean;
+input : boolean;
+final_out0 : boolean;
+ASSIGN
+init(r0_out) := FALSE;
+next(r0_out) := input;
+final_out0   := input & P0;
+-------------------------------------------
+MODULE orr(a,b,c,d,e)
+VAR
+final_out4 : boolean;
+final_out3 : boolean;
+final_out2 : boolean;
+final_out1 : boolean;
+final_out0 : boolean;
+DEFINE
+f_or := final_out4 |final_out3 |final_out2 |final_out1 |final_out0; 
+-------------------------------------------------------------------
+MODULE so(y)
+VAR
+	f_or : boolean;
+DEFINE
+addition := f_or;
+---------------------------------------------------
+--(B.2)UPDATING REQUEST STATUS
+---------------------------------------------------
+--ureqs_subsystem4
+----------------------------------------
+MODULE not(q,epp)
+VAR
+	p4 : boolean;
+ASSIGN
+init(p4) := FALSE;
+next(p4) := !(p4);
+----------------------------------------
+MODULE and(ua,rp)
+VAR
+	p4 : boolean;
+	r4 : boolean;
+   fandout :boolean;
+ASSIGN
+fandout := p4 & r4;
+----------------------------------------
+MODULE umps(ump,mp)
+VAR
+	true    : boolean;
+	fandout : boolean;
+	mpsout  : boolean;
+	out     : boolean;
+ASSIGN	
+	mpsout := case
+		fandout= FALSE  : out;
+		TRUE 	 : true;
+		  esac;
+----------------------------------------
+MODULE delay_bool(input1)
+VAR
+  out  : boolean;
+  input: boolean;
+ASSIGN
+  init(out) := FALSE;
+  next(out) := input;
+-----------------------------------------
+MODULE fiand(n,m,o)
+VAR
+	and_out : boolean;
+	mpsout  : boolean;
+	p4       : boolean;
+DEFINE
+	r4_out := mpsout & p4;
+-----------------------------------------
+MODULE s(d)
+VAR
+	r4_out : boolean;
+DEFINE
+	final_s := r4_out;
+----------------------------------------
+--ureqs_subsystem3
+----------------------------------------
+MODULE not3(w,epp)
+VAR
+	p3 : boolean;
+ASSIGN
+init(p3) := FALSE;
+next(p3) := !(p3);
+----------------------------------------
+MODULE and3(ua,rp)
+VAR
+	p3 : boolean;
+	r3 : boolean;
+   fandout :boolean;
+ASSIGN
+fandout := p3 & r3;
+----------------------------------------
+MODULE umps3(ump,mp)
+VAR
+	true    : boolean;
+	fandout : boolean;
+	mpsout  : boolean;
+	out     : boolean;
+ASSIGN	
+	mpsout := case
+		fandout= FALSE  : out;
+		TRUE 	 : true;
+		  esac;
+----------------------------------------
+MODULE fiand3(n,m,o)
+VAR
+	and_out : boolean;
+	mpsout  : boolean;
+	p3       : boolean;
+DEFINE
+	r3_out := mpsout & p3;
+-----------------------------------------
+MODULE s3(d)
+VAR
+	r3_out : boolean;
+DEFINE
+	final_s := r3_out;
+----------------------------------------
+--ureqs_subsystem2
+----------------------------------------
+MODULE not2(e,epp)
+VAR
+	p2 : boolean;
+ASSIGN
+init(p2) := FALSE;
+next(p2) := !(p2);
+----------------------------------------
+MODULE and2(ua,rp)
+VAR
+	p2 : boolean;
+	r2 : boolean;
+   fandout :boolean;
+ASSIGN
+fandout := p2 & r2;
+----------------------------------------
+MODULE umps2(ump,mp)
+VAR
+	true    : boolean;
+	fandout : boolean;
+	mpsout  : boolean;
+	out     : boolean;
+ASSIGN	
+	mpsout := case
+		fandout= FALSE  : out;
+		TRUE 	 : true;
+		  esac;
+----------------------------------------
+MODULE fiand2(n,m,o)
+VAR
+	and_out : boolean;
+	mpsout  : boolean;
+	p2      : boolean;
+DEFINE
+	r2_out := mpsout & p2;
+-----------------------------------------
+MODULE s2(d)
+VAR
+	r2_out : boolean;
+DEFINE
+	final_s := r2_out;
+----------------------------------------
+--ureqs_subsystem1
+----------------------------------------
+MODULE not1(r,epp)
+VAR
+	p1 : boolean;
+ASSIGN
+init(p1) := FALSE;
+next(p1) := !(p1);
+----------------------------------------
+MODULE and1(ua,rp)
+VAR
+	p1 : boolean;
+	r1 : boolean;
+   fandout :boolean;
+ASSIGN
+fandout := p1 & r1;
+----------------------------------------
+MODULE umps1(ump,mp)
+VAR
+	true    : boolean;
+	fandout : boolean;
+	mpsout  : boolean;
+	out     : boolean;
+ASSIGN	
+	mpsout := case
+		fandout= FALSE  : out;
+		TRUE 	 : true;
+		  esac;
+----------------------------------------
+MODULE fiand1(n,m,o)
+VAR
+	and_out : boolean;
+	mpsout  : boolean;
+	p1      : boolean;
+DEFINE
+	r1_out := mpsout & p1;
+-----------------------------------------
+MODULE s1(d)
+VAR
+	r1_out : boolean;
+DEFINE
+	final_s := r1_out;
+----------------------------------------
+--ureqs_subsystem0
+----------------------------------------
+MODULE not0(t,epp)
+VAR
+	p0 : boolean;
+ASSIGN
+init(p0) := FALSE;
+next(p0) := !(p0);
+----------------------------------------
+MODULE and0(ua,rp)
+VAR
+	p0: boolean;
+	r0 : boolean;
+   fandout :boolean;
+ASSIGN
+fandout := p0 & r0;
+----------------------------------------
+MODULE umps0(ump,mp)
+VAR
+	true    : boolean;
+	fandout : boolean;
+	mpsout  : boolean;
+	out     : boolean;
+ASSIGN	
+	mpsout := case
+		fandout= FALSE  : out;
+		TRUE 	 : true;
+		  esac;
+----------------------------------------
+MODULE fiand0(n,m,o)
+VAR
+	and_out : boolean;
+	mpsout  : boolean;
+	p0      : boolean;
+DEFINE
+	r0_out := mpsout & p0;
+-----------------------------------------
+MODULE s0(d)
+VAR
+	r0_out : boolean;
+DEFINE
+	final_s := r0_out;
+-----------------------------------------------------
+--(B.3)DIRECTION
+-----------------------------------------------------
+--[B.3.a]COMPUTING CURRENT FLOOR 
+-----------------------------------------------------
+MODULE multiplier4(f1,f2,f3,epp)
+VAR 
+	p4 : 0..1;
+DEFINE 
+	out := p4 * f2;
+------------------------------------
+MODULE multiplier3(f1,f2,f3,epp)
+VAR 
+	p3 : 0..1;
+DEFINE 
+	out := p3 * f2;
+-------------------------------------
+MODULE multiplier2(f1,f2,f3,epp)
+VAR 
+	p2 : 0..1;
+DEFINE 
+	out := p2 * f2;
+-------------------------------------
+MODULE multiplier1(f1,f2,f3,epp)
+VAR 
+	p1 : 0..1;
+DEFINE 
+	out := p1 * f2;
+--------------------------------------
+MODULE multiplier0(f1,f2,f3,epp)
+VAR 
+	p0 : 0..1;
+DEFINE 
+	out := p0 * f2;
+-------------------------------------
+MODULE sum5(p,q,r,s,t)
+DEFINE
+	cfout := p+q+r+s+t;
+---------------------------------------------------
+--MPS
+---------------------------------------------------
+MODULE mps(mp,mp1,mp2)
+VAR
+	dfout : 0..1;
+	cfout : 0..5;
+	cfoutt:0..5;
+	out  : 0..1;
+ASSIGN	
+	cfoutt := case
+		dfout = 0 : out;
+		TRUE 	  : cfout;
+			esac;
+---------------------------------------------------
+--[B.3.b]LIVE REQUEST
+---------------------------------------------------
+MODULE absval(p)
+VAR
+	cf    : 0..4;
+	const : 0..4;
+	abs   : 0..4;
+	output: -4..4;
+ASSIGN
+	output := cf - const;
+        abs := case
+		((output) >= 0) : (output);
+		((output) < 0)  : (0 -(output));
+		esac;
+---------------------------------------
+MODULE outt(q,p,r,s,t,u)
+VAR
+	abs 	   : 0..4;
+	r4_out 	   : 0..1;
+	R4outt	   : 0..5;
+	r3_out 	   : 0..1;
+	R3outt	   : 0..5;
+	r2_out 	   : 0..1;
+	R2outt	   : 0..5;
+	r1_out 	   : 0..1;
+	R1outt	   : 0..5;
+	r0_out 	   : 0..1;
+	R0outt	   : 0..5;
+ASSIGN	
+	R4outt := case
+		r4_out = 0 : 5;
+		r4_out = 1 : abs;
+		esac;
+	R3outt := case
+		r3_out = 0 : 5;
+		r3_out = 1 : abs;
+		esac;
+	R2outt := case
+		r2_out = 0 : 5;
+		r2_out = 1 : abs;
+		esac;
+	R1outt := case
+		r1_out = 0 : 5;
+		r1_out = 1 : abs;
+		esac;
+	R0outt := case
+		r0_out = 0 : 5;
+		r0_out = 1 : abs;
+		esac;
+---------------------------------------------------
+--[B.3.c]REQUESTED FLOOR
+---------------------------------------------------
+MODULE min
+VAR
+	out1 : 0..5;
+	out2 : 0..5;
+	out3 : 0..5;
+	out4 : 0..5;
+	out5 : 0..5;
+	RO   : 0..5;
+ASSIGN 
+	RO := case
+(out1 <= out2) & (out1 <= out3) & (out1 <= out4) &(out1 <= out5) : out1;
+(out2 <= out1) & (out2 <= out3) & (out2 <= out4) &(out2 <= out5) : out2;
+(out3 <= out1) & (out3 <= out2) & (out3 <= out4) &(out3 <= out5) : out3;
+(out4 <= out1) & (out4 <= out2) & (out4 <= out3) &(out4 <= out5) : out4;
+(out5 <= out1) & (out5 <= out2) & (out5 <= out3) &(out5 <= out4) : out5;
+	      esac;
+-------------------------------------------
+MODULE r(min1)
+VAR 
+	Rout   : 0..1;
+	rout   : 0..5;
+	RO     : 0..5;
+ASSIGN 
+	 init(rout) := 0;
+	 Rout := case
+		rout = RO : 1;
+		rout != RO : 0;
+		esac;
+--------------------------------------------
+MODULE floor(f)
+VAR
+	Rout	 : 0..1;
+	constant : 0..4;
+	Fout  	 : 0..5;
+ASSIGN	
+	init(Rout) := 0;
+	Fout := case
+		Rout = 0 : 5;
+		Rout = 1 : constant;
+			esac;
+---------------------------------------------------
+--[B.3.d]MINIMUM
+---------------------------------------------------
+MODULE min2(s,j)
+VAR
+	Fout1 : 0..5;
+	Fout2 : 0..5;
+	Fout3 : 0..5;
+	Fout4 : 0..5;
+	Fout5 : 0..5;
+	Floor : 0..5;
+ASSIGN 
+	Floor := case
+(Fout1 <= Fout2) & (Fout1 <= Fout3) & (Fout1 <= Fout4) &(Fout1 <= Fout5) : Fout1;
+(Fout2 <= Fout1) & (Fout2 <= Fout3) & (Fout2 <= Fout4) &(Fout2 <= Fout5) : Fout2;
+(Fout3 <= Fout1) & (Fout3 <= Fout2) & (Fout3 <= Fout4) &(Fout3 <= Fout5) : Fout3;
+(Fout4 <= Fout1) & (Fout4 <= Fout2) & (Fout4 <= Fout3) &(Fout4 <= Fout5) : Fout4;
+(Fout5 <= Fout1) & (Fout5 <= Fout2) & (Fout5 <= Fout3) &(Fout5 <= Fout4) : Fout5;
+	      esac;
+---------------------------------------------------
+--[B.3.e]NEXT FLOOR DIRECTION
+---------------------------------------------------
+--The subsystem contains different modules, gretaer then,equal 
+--less than,or,sum and different multipliers, each functions
+--are explained seperately in each subsystems
+--------------------------------------------------
+--{B.3.e.1}GREATER THAN
+--------------------------------------------------
+MODULE gt(l1,m1)
+VAR
+	fd   : 0..1;
+	floor: 0..5;
+	cfv  : 0..5;
+ASSIGN
+	fd := case
+		floor > cfv : 1;
+		!(floor > cfv) :0;
+		esac;		
+---------------------------------------------------
+--{B.3.e.2}EQUAL
+---------------------------------------------------
+MODULE eq(l2,m2)
+VAR
+	fd1  : 0..1;
+	floor: 0..5;
+	cfv  : 0..5;
+ASSIGN
+	fd1 := case
+		floor = cfv : 1;
+		floor != cfv :0;
+		esac;		
+---------------------------------------------------
+--{B.3.e.3}LESS THAN
+---------------------------------------------------
+MODULE lt(l3,m3)
+VAR
+	fd2  : 0..1;
+	floor: 0..5;
+	cfv  : 0..5;
+ASSIGN
+	fd2 := case
+		floor < cfv : 1;
+		!(floor < cfv) :0;
+		esac;		
+---------------------------------------------------
+--IF GREATER THAN MODULE IS RIGHT, THE VALUE IS GETTING 
+--MULTIPLIED WITH 1 VALUE
+--------------------------
+MODULE multiple(f1,f2)
+VAR
+	fd  : 0..1;
+DEFINE 
+	out := fd * f2;	
+---------------------------------------------------
+--IF EQUAL MODULE IS RIGHT, THE VALUE IS GETTING 
+--MULTIPLIED WITH 0 VALUE
+--------------------------
+MODULE multiple1(f1,f2)
+VAR
+	fd1  : 0..1;
+DEFINE 
+	out := fd1 * f2;	
+----------------------------------------------------
+--IF LESS THAN MODULE IS RIGHT, THE VALUE IS GETTING 
+--MULTIPLIED WITH -1 VALUE
+--------------------------
+MODULE multiple2(f1,f2)
+VAR
+	fd2  : 0..1;
+DEFINE 
+	out := fd2 * f2;	
+---------------------------------------------------
+--TAKING THE SUM OF WHOLE THREE MULTIPLIERS
+-----------------------------------------
+MODULE sum3(x,y,z)
+VAR
+	out: -1..1;	
+DEFINE
+	sout := (out + out + out);
+----------------------------------------------------
+--TAKING OR OF ALL THE FLOORS SUCH THAT THE ELEVATOR IS ON ONE 
+--OF THE FLOOR AT THE SAME TIME
+------------------------------
+MODULE or
+VAR
+ASSIGN
+	lout := (R4 |R3 |R2 |R1 |R0);
+----------------------------------------------------
+--FLOOR VALUE IS MULTIPLIED WITH THE SUM OF MULTIPLIERS
+----------------------------------------------------
+MODULE multiple3(f1,f2,f3)
+VAR
+	sout : -1..1;
+	lout : 0..1;
+DEFINE 
+	dout := lout * sout;
+---------------------------------------------------
+MODULE multiple4(f1)
+VAR
+	dout : -1..1;
+DEFINE 
+	direction := dout * 1;
+---------------------------------------------------
+--(B.4)FLOOR ARRIVAL
+---------------------------------------------------
+MODULE delay_bools(aa,av)
+VAR
+  out  : boolean;
+  input: boolean;
+ASSIGN
+  init(out) := FALSE;
+  next(out) := input;
+--------------------------------
+MODULE not_module(input)
+DEFINE 
+	not_out := !input ;
+--------------------------------
+MODULE and_module(b,c) 
+VAR
+	out : boolean;
+	not_out : boolean;
+DEFINE
+	fa_out := out & not_out;
+--------------------------------
+MODULE crrt(inp)
+VAR
+	fa_out : boolean;
+DEFINE
+	cc := fa_out ;
+---------------------------------------------------
+--(B.5)TIMER SUBSYSTEM
+---------------------------------------------------
+--DELAY AFTER 10 SECONDS
+MODULE delay(df)
+VAR
+  v1: boolean;
+  v2: boolean;
+  v3: boolean;
+  v4: boolean;
+  v5: boolean;
+  v6: boolean;
+  v7: boolean;
+  v8: boolean;
+  v9: boolean;
+  output: boolean;
+  input: boolean;
+ASSIGN
+  init(v1) := TRUE;
+  init(v2) := TRUE;
+  init(v3) := TRUE;
+  init(v4) := TRUE;
+  init(v5) := TRUE;
+  init(v6) := TRUE;
+  init(v7) := TRUE;
+  init(v8) := TRUE;
+  init(v9) := TRUE;
+  init(output) := TRUE;
+  next(v1) := input;
+  next(v2) := v1;
+  next(v3) := v2;
+  next(v4) := v3;
+  next(v5) := v4;
+  next(v6) := v5;
+  next(v7) := v6;
+  next(v8) := v7;
+  next(v9) := v8;
+  next(output) := v9;
+---------------------------------------------------
+--[B.5.a]TOGGLE IN TIMER
+---------------------------------------------------
+MODULE toggle(a,b)
+VAR
+	Toggle_in : boolean;
+	Toggle_out: boolean;
+	out       : boolean;
+ASSIGN	
+	Toggle_out 	:= case
+			Toggle_in = FALSE : out;
+			Toggle_in = TRUE  : !(out);
+			esac;
+---------------------------------------------------
+MODULE or_mod(p,q)
+VAR
+	fa_out : boolean;
+	output  : boolean;
+DEFINE
+	Toggle_in := (fa_out | output);
+---------------------------------------------------
+--[B.5.b]MPS
+---------------------------------------------------
+MODULE ct_out(fg,gh)
+VAR
+	Toggle_out: 0..1;
+	c_out     : -1..1;
+	direction : -1..1;
+ASSIGN
+	c_out := case
+		Toggle_out = 0: direction;
+		Toggle_out = 1  : 0;
+		esac;
+---------------------------------------------------
+MODULE controller(co)
+VAR
+	c_out     : -1..1;
+DEFINE
+	controller_out := c_out;
+---------------------------------------------------
+--MAIN OF CONTROLLER
+---------------------------------------------------
+MODULE main
+VAR
+	sub4 : sub_and4(input,ep.p4);
+	sub3 : sub_and3(input,ep.p3);
+	sub2 : sub_and2(input,ep.p2);
+	sub1 : sub_and1(input,ep.p1);
+	sub0 : sub_and0(input,ep.p0);
+	summ : orr(sub4.final_out4,sub4.final_out4,sub4.final_out4,sub4.final_out4,sub4.final_out4);
+	qw : so(summ.f_or);
+	nt: not(sub4.p4,ep.p4);
+	ad: and(nt.p4,s.R4);
+	d : delay_bool(input);
+	m : umps(d.out, ad.fandout);
+	fd: fiand(nt.p4, m.mpsout,sub4.r4_out);
+	gg: s(fd.r4_out);
+	nt3: not3(sub3.p3,ep.p3);
+	ad3: and3(nt3.p3,s.R3);
+	m3 : umps3(d.out, ad3.fandout);
+	fd3: fiand3(nt3.p3, m3.mpsout,sub3.r3_out);
+	gg3: s3(fd3.r3_out);
+	nt2: not2(sub2.p2,ep.p2);
+	ad2: and2(nt2.p2,s.R2);
+	m2 : umps2(d.out, ad2.fandout);
+	fd2: fiand2(nt2.p2, m2.mpsout,sub2.r2_out);
+	gg2: s2(fd2.r2_out);
+	nt1: not1(sub1.p1,ep.p1);
+	ad1: and1(nt1.p1,s.R1);
+	m1 : umps1(d.out, ad1.fandout);
+	fd1: fiand1(nt1.p1, m1.mpsout,sub1.r1_out);
+	gg1: s1(fd1.r1_out);
+	nt0: not0(sub0.p0,ep.p0);
+	ad0: and0(nt0.p0,s.R0);
+	m0 : umps0(d.out, ad0.fandout);
+	fd0: fiand0(nt0.p0, m0.mpsout,sub0.r0_out);
+	gg0: s0(fd0.r0_out);
+
+	mult4 : multiplier4(f1,4,sub4.p4,ep.p4);
+	mult3 : multiplier3(f1,3,sub3.p3,ep.p3);
+	mult2 : multiplier2(f1,2,sub2.p2,ep.p2);
+	mult1 : multiplier1(f1,1,sub1.p1,ep.p1);
+	mult0 : multiplier0(f1,0,sub0.p0,ep.p0);
+	s     : sum5(mult4.out,mult3.out,mult2.out,mult1.out,mult0.out);
+	mpp   : mps(d.out,s.cfout,qw.f_or);
+	p     : absval(mpp.cfoutt);
+	q     : outt(p.abs,fd0.r0_out,fd1.r1_out,fd2.r2,fd3.r3,fd.r4);
+	q2    : r(min.RO);
+	q3    : floor(q2.Rout);
+	f     : min2(floor,q3.Fout);
+	g     : gt(s.cfout,q3.Fout);
+	e     : eq(s.cfout,q3.Fout);
+	l     : lt(s.cfout,q3.Fout);
+	multt1: multiple(g.fd ,1);
+	multt2: multiple1(e.fd1 ,0);
+	multt3: multiple2(l.fd2 ,-1);
+	sm    : sum3(multt1.out,multt2.out,multt3.out);
+	multt4: multiple3(sm.sout, or.lout, dout);
+	multt5: multiple4(multt4.dout);
+
+	dq : delay_bools(input,qw.f_or);
+  	n : not_module(dq.out);
+  	a : and_module(dq.out,n.not_out);
+  	tt : crrt(a.fa_out);
+
+--CONTAINS TWO MAIN MODULES:TIMER WHICH CONTAINS TOGGLE SUBSYSTEM
+	t : toggle(d.out,o.Toggle_in);
+	dd: delay(a.fa_out);
+	o : or_mod(output,fa_out );
+
+	cout: ct_out(t.Toggle_out,multt5.direction);
+	ct : controller(cout.c_out);
+--PLANT MAIN 	
+--	ap : ro;
+	bp : pdt(ro.ro1,ro.ro2);
+	cp : sum(bp.pd1,bp.pd2);
+	dp : counter(cp.pos);
+	ep : postn(dp.cnt);
+	t1p : tc1;
+	sp  : system(t1p.out1,t1p.out2);
+---------------------------------------------------
